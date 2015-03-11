@@ -11,27 +11,6 @@ class ActiveRecord extends BaseActiveRecord implements DataTypeInterface
 {
     use DataTypeTrait;
     
-    public function __get($name)
-    {
-        $value = parent::__get($name);
-        if ($name === '_id' && is_object($value)) {
-            return (string)$value;
-        }
-        
-        if (is_array($value)) {
-            return $this->getEmbedded($name, $value);
-            
-        }
-        return $value;
-    }
-    
-    protected function getEmbedded($name, array $value)
-    {
-        //$isArray = array_keys($value) === range(0, count($value) - 1);
-        $embedded = new ActiveEmbeddedRecord($this, $name);
-        return $embedded;
-    }
-    
     public function columns()
     {
         throw new InvalidConfigException('Method columns() must be implemented by child classes');

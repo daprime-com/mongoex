@@ -27,16 +27,4 @@ class ActiveRecordTests extends TestCase
         $toArray = $model->toArray();
         $this->assertTrue(is_string($toArray['_id']));
     }
-    
-    public function testMagicGetterReturnsEmbeddedForObjectField()
-    {
-        $model = new ActiveRecordMock();
-        $model->obj = [
-            'field1' => 'test1',
-            'field2' => 'test2'
-        ];
-        
-        $this->assertInstanceOf(ActiveEmbeddedRecord::className(), $model->obj);
-        $this->assertEquals('obj', $model->obj->fieldName);
-    }
 }
