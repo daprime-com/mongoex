@@ -3,8 +3,8 @@
     "description": "MongoDb extension for the Yii framework",
     "authors": [
         {
-            "name": "Paul Klimov",
-            "email": "klimov.paul@gmail.com"
+            "name": "Igor Murujev",
+            "email": "imurujev@gmail.com"
         }
     ],
     "minimum-stabily": "stable",
