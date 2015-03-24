@@ -11,11 +11,6 @@ class ActiveRecord extends BaseActiveRecord implements DataTypeInterface
 {
     use DataTypeTrait;
     
-    public function __set($name, $value) {
-        var_dump($name);
-        parent::__set($name, $value);
-    }
-    
     /**
      * @inheritdoc
      */

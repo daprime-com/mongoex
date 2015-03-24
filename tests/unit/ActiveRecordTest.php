@@ -56,10 +56,4 @@ class ActiveRecordTests extends TestCase
         $this->assertFalse($model->save());
         $this->assertArrayHasKey('arr.1.int', $model->getErrors());
     }
-    
-    public function testSettingValueOfObjectAttribute()
-    {
-        $model = new ActiveRecordMock();
-        $model->arr[0] = ['str' => 'aaa', 'int' => 100];
-    }
 }
