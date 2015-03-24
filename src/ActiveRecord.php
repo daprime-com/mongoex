@@ -11,9 +11,9 @@ class ActiveRecord extends BaseActiveRecord implements DataTypeInterface
 {
     use DataTypeTrait;
     
-    public function columns()
-    {
-        throw new InvalidConfigException('Method columns() must be implemented by child classes');
+    public function __set($name, $value) {
+        var_dump($name);
+        parent::__set($name, $value);
     }
     
     /**
@@ -42,5 +42,19 @@ class ActiveRecord extends BaseActiveRecord implements DataTypeInterface
             };
         }
         return $fields;
+    }
+    
+    public function columns()
+    {
+        throw new InvalidConfigException('Method columns() must be implemented by child classes');
+    }
+    
+    public function getFieldType($name)
+    {
+        $types = $this->columns();
+        if (!array_key_exists($name, $types)) {
+            return null;
+        }
+        return $types[$name];
     }
 }
