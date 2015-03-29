@@ -3,6 +3,7 @@ namespace mongoex;
 
 use Yii;
 use yii\mongodb\ActiveRecord as BaseActiveRecord;
+use yii\base\InvalidConfigException;
 
 /**
  * @author Igor Murujev <imurujev@gmail.com>
@@ -10,6 +11,13 @@ use yii\mongodb\ActiveRecord as BaseActiveRecord;
 class ActiveRecord extends BaseActiveRecord implements DataTypeInterface
 {
     use DataTypeTrait;
+    
+    protected $isPrimaryModel = true;
+    
+    public function getIsPrimaryModel()
+    {
+        return $this->isPrimaryModel;
+    }
     
     /**
      * @inheritdoc
@@ -42,14 +50,5 @@ class ActiveRecord extends BaseActiveRecord implements DataTypeInterface
     public function columns()
     {
         throw new InvalidConfigException('Method columns() must be implemented by child classes');
-    }
-    
-    public function getFieldType($name)
-    {
-        $types = $this->columns();
-        if (!array_key_exists($name, $types)) {
-            return null;
-        }
-        return $types[$name];
     }
 }

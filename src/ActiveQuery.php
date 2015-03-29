@@ -7,7 +7,7 @@ use yii\mongodb\ActiveQuery as BaseActiveQuery;
  * @author Igor Murujev <imurujev@gmail.com>
  */
 class ActiveQuery extends BaseActiveQuery
-{        
+{    
     /**
      * 
      */
@@ -22,7 +22,6 @@ class ActiveQuery extends BaseActiveQuery
                 $rows[$key]['_id'] = (string)$row['_id'];
             }
         }
-        
         return parent::populate($rows);
     }
 }
