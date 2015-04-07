@@ -12,13 +12,6 @@ class ActiveRecord extends BaseActiveRecord implements DataTypeInterface
 {
     use DataTypeTrait;
     
-    protected $isPrimaryModel = true;
-    
-    public function getIsPrimaryModel()
-    {
-        return $this->isPrimaryModel;
-    }
-    
     /**
      * @inheritdoc
      */
@@ -36,7 +29,16 @@ class ActiveRecord extends BaseActiveRecord implements DataTypeInterface
         return Yii::createObject(ActiveQuery::className(), [get_called_class()]);
     }
     
-    public function fields()
+    public function hasGg($class, $link)
+    {
+        /*$query = $class::find();
+        $query->primaryModel = $this;
+        $query->link = $link;
+        $query->multiple = false;
+        return $query;*/
+    }
+    
+    /*public function fields()
     {
         $fields = parent::fields();
         if (isset($fields['_id'])) {
@@ -45,7 +47,7 @@ class ActiveRecord extends BaseActiveRecord implements DataTypeInterface
             };
         }
         return $fields;
-    }
+    }*/
     
     public function columns()
     {

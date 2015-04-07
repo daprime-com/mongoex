@@ -2,6 +2,7 @@
 namespace tests\unit\mocks;
 
 use mongoex\ActiveRecord;
+use mongoex\validators\MongoObjectValidator;
 
 /**
  * @author Igor Murujev <imurujev@gmail.com>

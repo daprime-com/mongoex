@@ -8,20 +8,4 @@ use yii\mongodb\ActiveQuery as BaseActiveQuery;
  */
 class ActiveQuery extends BaseActiveQuery
 {    
-    /**
-     * 
-     */
-    public function populate($rows)
-    {
-        if (empty($rows)) {
-            return [];
-        }
-        
-        foreach ($rows as $key => $row) {
-            if (isset($row['_id']) && is_object($row['_id'])) {
-                $rows[$key]['_id'] = (string)$row['_id'];
-            }
-        }
-        return parent::populate($rows);
-    }
 }

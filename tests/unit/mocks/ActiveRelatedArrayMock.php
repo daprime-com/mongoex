@@ -6,11 +6,11 @@ use mongoex\ActiveEmbeddedRecord;
 /**
  * @author Igor Murujev <imurujev@gmail.com>
  */
-class ActiveRelatedRecordMock extends ActiveEmbeddedRecord
+class ActiveRelatedArrayMock extends ActiveEmbeddedRecord
 {                
     public static function parentModel()
     {
-        return [ActiveRecordMock::className(), 'object'];
+        return [ActiveRecordMock::className(), 'array'];
     }
     
     public function rules()

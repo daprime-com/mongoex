@@ -10,11 +10,11 @@ use yii\base\DynamicModel;
  */
 class MongoObjectValidator extends Validator
 {
-    public $rules;
+    public $fields;
     
     public function init()
     {
-        if ($this->rules === null) {
+        if ($this->fields === null) {
             throw new InvalidConfigException(Yii::t('app', 'rules[] parameter is required for MongoObjectValidator'));
         }
     }
@@ -28,7 +28,7 @@ class MongoObjectValidator extends Validator
     {
         $values = $this->refillValues($values);
 
-        $dynamic = DynamicModel::validateData($values, $this->rules);
+        $dynamic = DynamicModel::validateData($values, $this->fields);
         if ($dynamic->hasErrors()) {
             foreach ($dynamic->getErrors() as $attr => $error) {
                 $attrName = $attribute . '.' . ($index ? $index . '.' : null) . $attr;
@@ -40,7 +40,7 @@ class MongoObjectValidator extends Validator
     protected function refillValues(array $values)
     {
         $attributes = [];
-        foreach ($this->rules as $rule) {
+        foreach ($this->fields as $rule) {
             if (is_array($rule[0])) {
                 foreach ($rule[0] as $attribute) {
                     $attributes[$attribute] = null;

@@ -25,4 +25,11 @@ class TestCase extends \PHPUnit_Framework_TestCase
         parent::tearDown();
         Yii::$app = null;
     }
+    
+    protected function assertModelSaved($model)
+    {
+        $saved = $model->save();
+        $this->assertCount(0, $model->getErrors(), 'Errors: ' . json_encode($model->getErrors()));
+        $this->assertTrue($saved);
+    }
 }

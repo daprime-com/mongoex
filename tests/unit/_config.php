@@ -9,6 +9,15 @@ return [
         'mongodb' => [
             'class' => 'yii\mongodb\Connection',
             'dsn' => 'mongodb://test-user:test-pass@localhost:27017/test_db'
+        ],
+        'log' => [
+            'targets' => [
+                [
+                    'class' => 'yii\log\FileTarget',
+                    'categories' => ['*'],
+                    'logFile' => $basePath . '/tests/logs/mongodb.log'
+                ],
+            ],
         ]
     ]
 ];
