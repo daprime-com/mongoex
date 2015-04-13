@@ -1,6 +1,8 @@
 <?php
 namespace mongoex;
 
+use yii\db\StaleObjectException;
+
 /**
  * @author Igor Murujev <imurujev@gmail.com>
  */
@@ -9,16 +11,6 @@ class PartialRecord extends ActiveRecord
     public $parentId;
     
     protected static $parentModel;
-    
-    public static function getParentClass()
-    {
-        return static::$parentModel[0];
-    }
-    
-    public static function getParentField()
-    {
-        return static::$parentModel[1];
-    }
     
     public static function primaryKey() 
     {
@@ -31,9 +23,40 @@ class PartialRecord extends ActiveRecord
     }
     
     /**
+     * @see ActiveRecord::delete()
+     * @throws StaleObjectException
+     */
+    protected function deleteInternal()
+    {
+        // we do not check the return value of deleteAll() because it's possible
+        // the record is already deleted in the database and thus the method will return 0
+        $parentModel = static::$parentModel[0];
+        $parentField = static::$parentModel[1];
+        
+        $condition = [
+            '_id' => $this->parentId,
+            $parentField.'.oid' => $this->getOldPrimaryKey()
+        ];
+        
+        $lock = $this->optimisticLock();
+        if ($lock !== null) {
+            $condition[$parentField.'.'.$lock] = $this->$lock;
+        }
+        
+        $result = $parentModel::getCollection()->update($condition, [
+            '$pull' => [$parentField => ['oid' => $this->getOldPrimaryKey()]]
+        ]);
+        if ($lock !== null && !$result) {
+            throw new StaleObjectException('The object being deleted is outdated.');
+        }
+        $this->setOldAttributes(null);
+        return $result;
+    }
+    
+    /**
      * @see ActiveRecord::insert()
      */
-    /*protected function insertInternal($attributes = null)
+    protected function insertInternal($attributes = null)
     {
         if (!$this->beforeSave(true)) {
             return false;
@@ -47,12 +70,78 @@ class PartialRecord extends ActiveRecord
                 }
             }
         }
-        $newId = static::getCollection()->insert($values);
-        $this->setAttribute('_id', $newId);
-        $values['_id'] = $newId;
+        
+        $newId = new \MongoId();
+        $parentModel = static::$parentModel[0];
+        $parentField = static::$parentModel[1];
+        
+        $parentModel::getCollection()->update(['_id' => $this->parentId], [
+            '$push' => [$parentField => $this->prepareData($values)]
+        ]);
+        
+        $this->setAttribute('oid', $newId);
+        $values['oid'] = $newId;
         $changedAttributes = array_fill_keys(array_keys($values), null);
         $this->setOldAttributes($values);
         $this->afterSave(true, $changedAttributes);
         return true;
-    }*/
+    }
+    
+    /**
+     * @see ActiveRecord::update()
+     * @throws StaleObjectException
+     */
+    protected function updateInternal($attributes = null)
+    {
+        if (!$this->beforeSave(false)) {
+            return false;
+        }
+        $values = $this->getDirtyAttributes($attributes);
+        if (empty($values)) {
+            $this->afterSave(false, $values);
+            return 0;
+        }
+        $condition = $this->getOldPrimaryKey(true);
+        $lock = $this->optimisticLock();
+        if ($lock !== null) {
+            if (!isset($values[$lock])) {
+                $values[$lock] = $this->$lock + 1;
+            }
+            $condition[$lock] = $this->$lock;
+        }
+        
+        $rows = $this->updateRecord($this->prepareData($values));
+
+        if ($lock !== null && !$rows) {
+            throw new StaleObjectException('The object being updated is outdated.');
+        }
+        $changedAttributes = [];
+        foreach ($values as $name => $value) {
+            $changedAttributes[$name] = $this->getOldAttribute($name);
+            $this->setOldAttribute($name, $value);
+        }
+        $this->afterSave(false, $changedAttributes);
+        return $rows;
+    }
+    
+    protected function updateRecord(array $values)
+    {
+        $parentModel = static::$parentModel[0];
+        $parentField = static::$parentModel[1];
+        $data = [];
+        
+        foreach ($values as $field => $value) {
+            $data[$parentField.'.$.'.$field] = $value;
+        }
+        
+        return $parentModel::getCollection()->update(
+            ['_id' => $this->parentId, $parentField.'.oid' => $this->getId()], 
+            $data
+        );
+    }
+    
+    protected function prepareData(array $values)
+    {
+        return $values;
+    }
 }

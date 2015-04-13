@@ -28,21 +28,48 @@ class PartialRecordTests extends TestCase
         $this->assertInstanceOf(PartialRecordMock::className(), $models[0]);
         $this->assertEquals('partialstring1', $models[0]->str);
         $this->assertEquals(2, $models[0]->integer);
-        
-        $models = PartialRecordMock::find()
-                ->where(['or', ['str' => 'partialstring1'], ['str' => 'partialstring4']])
-                ->all();
-        
-        $this->assertCount(2, $models);
     }
     
+    public function testNewModelCreation()
+    {
+        $model = new PartialRecordMock([
+            'parentId' => 'parent1'
+        ]);
+        $model->str = 'partialstring6';
+        $model->integer = 100;
+        
+        $this->assertModelSaved($model);
+    }
+    
+    public function testExistingModelUpdate()
+    {
+        $model = PartialRecordMock::findOne('oid1');
+        $this->assertEquals('partialstring1', $model->str);
+        $this->assertEquals(2, $model->integer);
+        
+        $model->str = 'updatedstring';
+        $this->assertModelSaved($model);
+        $this->assertEquals('updatedstring', $model->str);
+        $this->assertEquals(2, $model->integer);
+        $model->refresh();
+        $this->assertEquals('updatedstring', $model->str);
+        $this->assertEquals(2, $model->integer);
+    }
+    
+    public function testExistingModelDelete()
+    {
+        $model = PartialRecordMock::findOne('oid1');
+        $this->assertEquals(1, $model->delete());
+        $this->assertNull(PartialRecordMock::findOne('oid1'));
+    }
+
     public function fixtures()
     {
         return [
             'records' => [
                 'class' => ActiveRecordMock::className(),
                 'data' => [
-                    ['str' => 'string', 'integer' => 1, 'partial' => [
+                    ['_id' => 'parent1', 'str' => 'string', 'integer' => 1, 'partial' => [
                         ['oid' => 'oid1', 'str' => 'partialstring1', 'integer' => 2],
                         ['oid' => 'oid2', 'str' => 'partialstring2', 'integer' => 3],
                         ['oid' => 'oid3', 'str' => 'partialstring3', 'integer' => 4]
