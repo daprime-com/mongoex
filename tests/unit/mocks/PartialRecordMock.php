@@ -1,17 +1,14 @@
 <?php
 namespace tests\unit\mocks;
 
-use mongoex\ActiveEmbeddedRecord;
+use mongoex\PartialRecord;
 
 /**
  * @author Igor Murujev <imurujev@gmail.com>
  */
-class ActiveRelatedArrayMock extends ActiveEmbeddedRecord
-{                
-    public static function parentModel()
-    {
-        return [ActiveRecordMock::className(), 'array'];
-    }
+class PartialRecordMock extends PartialRecord
+{            
+    protected static $parentModel = ['tests\unit\mocks\ActiveRecordMock', 'partial'];
     
     public function rules()
     {
@@ -26,5 +23,11 @@ class ActiveRelatedArrayMock extends ActiveEmbeddedRecord
             'str' =>     static::DATA_TYPE_STRING,
             'integer' => static::DATA_TYPE_INTEGER
         ];
+    }
+    
+    //for testing only
+    public function getAttributesCount()
+    {
+        return 3; //+_id
     }
 }

@@ -29,25 +29,19 @@ class ActiveRecord extends BaseActiveRecord implements DataTypeInterface
         return Yii::createObject(ActiveQuery::className(), [get_called_class()]);
     }
     
-    public function hasGg($class, $link)
+    public function getId()
     {
-        /*$query = $class::find();
-        $query->primaryModel = $this;
-        $query->link = $link;
-        $query->multiple = false;
-        return $query;*/
+        return (string)$this->primaryKey;
     }
     
-    /*public function fields()
+    public function fields()
     {
         $fields = parent::fields();
-        if (isset($fields['_id'])) {
-            $fields['_id'] = function ($model) {
-                return (string)$model->_id;
-            };
-        }
+        $fields['_id'] = function($model){
+            return $model->id;
+        };
         return $fields;
-    }*/
+    }
     
     public function columns()
     {
