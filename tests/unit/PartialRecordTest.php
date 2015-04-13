@@ -5,13 +5,7 @@ use tests\unit\mocks\ActiveRecordMock;
 use tests\unit\mocks\PartialRecordMock;
 
 class PartialRecordTests extends TestCase
-{    
-    public function testPartialRecordParentDefinition()
-    {
-        $this->assertEquals(ActiveRecordMock::className(), PartialRecordMock::getParentClass());
-        $this->assertEquals('partial', PartialRecordMock::getParentField());
-    }
-    
+{        
     public function testFindQueryClass()
     {
         $query = PartialRecordMock::find();
