@@ -56,7 +56,7 @@ class PartialRecord extends ActiveRecord
 
         $condition = [
             '_id' => $this->parentId,
-            $parentField.'.oid' => $this->getOldPrimaryKey()
+            $parentField.'.oid' => $this->getId()
         ];
 
         $lock = $this->optimisticLock();
@@ -96,6 +96,7 @@ class PartialRecord extends ActiveRecord
         $parentField = static::$parentModel[1];
 
         $newId = new \MongoId();
+        $newId = (string)$newId;
         $this->setAttribute('oid', $newId);
         $values['oid'] = $newId;
 
@@ -157,7 +158,7 @@ class PartialRecord extends ActiveRecord
         }
 
         return $parentModel::getCollection()->update(
-            ['_id' => $this->parentId, $parentField.'.oid' => $this->getId(false)],
+            ['_id' => $this->parentId, $parentField.'.oid' => $this->getId()],
             $data
         );
     }
