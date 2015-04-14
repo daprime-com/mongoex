@@ -9,26 +9,40 @@ use yii\db\StaleObjectException;
 class PartialRecord extends ActiveRecord
 {
     public $parentId;
-    
+
     protected static $parentModel;
-    
-    public static function primaryKey() 
+
+    public static function primaryKey()
     {
         return ['oid'];
     }
-    
+
     public static function find()
     {
         return parent::find()->whereParent(static::$parentModel);
     }
-    
+
+    public static function getCollection()
+    {
+		$parentClass = static::$parentModel[0];
+		return $parentClass::getCollection();
+    }
+
     public function fields()
     {
         $fields = parent::fields();
         $fields[] = 'parentId';
         return $fields;
     }
-    
+
+    public function setAttributes($values, $safeOnly = true)
+    {
+    	parent::setAttributes($values, $safeOnly);
+        if (isset($values['parentId'])) {
+			$this->parentId = $values['parentId'];
+        }
+    }
+
     /**
      * @see ActiveRecord::delete()
      * @throws StaleObjectException
@@ -39,17 +53,17 @@ class PartialRecord extends ActiveRecord
         // the record is already deleted in the database and thus the method will return 0
         $parentModel = static::$parentModel[0];
         $parentField = static::$parentModel[1];
-        
+
         $condition = [
             '_id' => $this->parentId,
             $parentField.'.oid' => $this->getOldPrimaryKey()
         ];
-        
+
         $lock = $this->optimisticLock();
         if ($lock !== null) {
             $condition[$parentField.'.'.$lock] = $this->$lock;
         }
-        
+
         $result = $parentModel::getCollection()->update($condition, [
             '$pull' => [$parentField => ['oid' => $this->getOldPrimaryKey()]]
         ]);
@@ -59,7 +73,7 @@ class PartialRecord extends ActiveRecord
         $this->setOldAttributes(null);
         return $result;
     }
-    
+
     /**
      * @see ActiveRecord::insert()
      */
@@ -77,23 +91,24 @@ class PartialRecord extends ActiveRecord
                 }
             }
         }
-        
-        $newId = new \MongoId();
+
         $parentModel = static::$parentModel[0];
         $parentField = static::$parentModel[1];
-        
+
+        $newId = new \MongoId();
+        $this->setAttribute('oid', $newId);
+        $values['oid'] = $newId;
+
         $parentModel::getCollection()->update(['_id' => $this->parentId], [
             '$push' => [$parentField => $this->prepareData($values)]
         ]);
-        
-        $this->setAttribute('oid', $newId);
-        $values['oid'] = $newId;
+
         $changedAttributes = array_fill_keys(array_keys($values), null);
         $this->setOldAttributes($values);
         $this->afterSave(true, $changedAttributes);
         return true;
     }
-    
+
     /**
      * @see ActiveRecord::update()
      * @throws StaleObjectException
@@ -116,7 +131,7 @@ class PartialRecord extends ActiveRecord
             }
             $condition[$lock] = $this->$lock;
         }
-        
+
         $rows = $this->updateRecord($this->prepareData($values));
 
         if ($lock !== null && !$rows) {
@@ -130,23 +145,23 @@ class PartialRecord extends ActiveRecord
         $this->afterSave(false, $changedAttributes);
         return $rows;
     }
-    
+
     protected function updateRecord(array $values)
     {
         $parentModel = static::$parentModel[0];
         $parentField = static::$parentModel[1];
         $data = [];
-        
+
         foreach ($values as $field => $value) {
             $data[$parentField.'.$.'.$field] = $value;
         }
-        
+
         return $parentModel::getCollection()->update(
-            ['_id' => $this->parentId, $parentField.'.oid' => $this->getId()], 
+            ['_id' => $this->parentId, $parentField.'.oid' => $this->getId(false)],
             $data
         );
     }
-    
+
     protected function prepareData(array $values)
     {
         return $values;
