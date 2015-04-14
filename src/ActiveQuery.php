@@ -79,7 +79,7 @@ class ActiveQuery extends BaseActiveQuery
         $match = [];
         foreach ($this->where as $field => $value) {
             if ($field === 'parentId') {
-                $match['_id'] = $value;
+                $match['_id'] = new \MongoId($value);
             }
             else {
                 $match[$parentField . '.' . $field] = $value;
