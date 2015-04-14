@@ -7,9 +7,9 @@ use yii\mongodb\ActiveQuery as BaseActiveQuery;
  * @author Igor Murujev <imurujev@gmail.com>
  */
 class ActiveQuery extends BaseActiveQuery
-{ 
+{
     use AggregatedQueryTrait;
-        
+
     protected function buildCursor($db = null)
     {
         if (!$this->hasParent()) {
@@ -17,7 +17,7 @@ class ActiveQuery extends BaseActiveQuery
         }
         return $this->buildPartialCursor($db);
     }
-    
+
     protected function buildPartialCursor($db = null)
     {
         $parentClass = $this->parent[0];
@@ -27,7 +27,7 @@ class ActiveQuery extends BaseActiveQuery
             'data' => $parentClass::getCollection()->aggregate($this->buildPipeline($parentField))
         ]);
     }
-    
+
     /**
      * @param string $parentField
      * @return array
@@ -38,29 +38,29 @@ class ActiveQuery extends BaseActiveQuery
         if ($this->composePartialCondition($parentField)) {
             $matchCondition = ['$match' => $this->composePartialCondition($parentField)];
         }
-        
+
         $pipelines = [];
         $pipelines[] = ['$unwind' => '$'.$parentField];
         if ($matchCondition) {
             $pipelines[] = $matchCondition;
         }
         $pipelines[] = ['$project' => ['result' => '$'.$parentField, 'parentId' => '$_id', '_id' => 0]];
-        
+
         if (!empty($this->orderBy)) {
             $pipelines[] = ['$sort' => $this->composeSort()];
         }
-        
-        if ($this->limit) {
+
+        if ($this->limit > 0) {
             $pipelines[] = ['$limit' => $this->limit];
         }
-        
-        if ($this->offset) {
+
+        if ($this->offset > 0) {
             $pipelines[] = ['$skip' => $this->offset];
         }
-        
+
         return $pipelines;
     }
-    
+
     private function composeSort()
     {
         $sort = [];
@@ -69,13 +69,13 @@ class ActiveQuery extends BaseActiveQuery
         }
         return $sort;
     }
-    
+
     private function composePartialCondition($parentField)
     {
         if ($this->where === null) {
             return null;
         }
-        
+
         $match = [];
         foreach ($this->where as $field => $value) {
             if ($field === 'parentId') {
