@@ -22,6 +22,13 @@ class PartialRecord extends ActiveRecord
         return parent::find()->whereParent(static::$parentModel);
     }
     
+    public function fields()
+    {
+        $fields = parent::fields();
+        $fields[] = 'parentId';
+        return $fields;
+    }
+    
     /**
      * @see ActiveRecord::delete()
      * @throws StaleObjectException
