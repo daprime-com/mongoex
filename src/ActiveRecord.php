@@ -36,8 +36,9 @@ class ActiveRecord extends BaseActiveRecord implements DataTypeInterface
     
     public function fields()
     {
+    	$primaryKey = static::primaryKey()[0];
         $fields = parent::fields();
-        $fields['_id'] = function($model){
+        $fields[$primaryKey] = function($model){
             return $model->id;
         };
         return $fields;
