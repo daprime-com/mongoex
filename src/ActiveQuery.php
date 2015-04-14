@@ -85,7 +85,7 @@ class ActiveQuery extends BaseActiveQuery
 				$field = $parentField . '.' . $field;
             }
 
-			if ($field === '_id' || $field === $parentField.'.oid') {
+			if ($field === '_id') {
 				$value = new \MongoId($value);
 			}
             $match[$field] = $value;
