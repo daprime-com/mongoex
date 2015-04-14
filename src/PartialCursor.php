@@ -59,8 +59,15 @@ class PartialCursor extends Object implements \Iterator
         return $this->current();
     }
     
+    public function count()
+    {
+        return count($this->_cursor);
+    }
+    
     public function info()
     {
-        return ['count' => count($this->_cursor)];
+        return [
+            'count' => $this->count()
+        ];
     }
 }
