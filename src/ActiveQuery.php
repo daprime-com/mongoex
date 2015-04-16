@@ -8,15 +8,24 @@ use yii\mongodb\ActiveQuery as BaseActiveQuery;
  */
 class ActiveQuery extends BaseActiveQuery
 {
-    use AggregatedQueryTrait;
+    public function getCollection($db = null)
+    {
+        $collection = parent::getCollection($db);
+        $modelClass = $this->modelClass;
+        $prefix = $modelClass::prefix();
+        if ($prefix) {
+            $collection->prefix = $prefix;
+        }
+        return $collection;
+    }
 
-    protected function buildCursor($db = null)
+    /*protected function buildCursor($db = null)
     {
         if (!$this->hasParent()) {
             return parent::buildCursor($db);
         }
         return $this->buildPartialCursor($db);
-    }
+    }*/
 
     protected function buildPartialCursor($db = null)
     {

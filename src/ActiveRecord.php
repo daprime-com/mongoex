@@ -11,6 +11,23 @@ use yii\base\InvalidConfigException;
 class ActiveRecord extends BaseActiveRecord implements DataTypeInterface
 {
     use DataTypeTrait;
+    
+    /**
+     * @inheritdoc
+     */
+    public static function find()
+    {
+        return Yii::createObject(\mongoex\ActiveQuery::className(), [get_called_class()]);
+    }
+    
+    public static function primaryKey()
+    {
+        $prefix = static::prefix();
+        if ($prefix === null) {
+            return parent::primaryKey();
+        }
+        return ['oid'];
+    }
 
     /**
      * @inheritdoc
@@ -18,15 +35,6 @@ class ActiveRecord extends BaseActiveRecord implements DataTypeInterface
     public function attributes()
     {
         return array_merge(static::primaryKey(), array_keys($this->columns()));
-    }
-
-    /**
-     * @inheritdoc
-     * @return ActiveQuery the newly created [[ActiveQuery]] instance.
-     */
-    public static function find()
-    {
-        return Yii::createObject(ActiveQuery::className(), [get_called_class()]);
     }
 
     public function getId($stringify = true)
@@ -50,5 +58,20 @@ class ActiveRecord extends BaseActiveRecord implements DataTypeInterface
     public function columns()
     {
         throw new InvalidConfigException('Method columns() must be implemented by child classes');
+    }
+    
+    public static function prefix()
+    {
+        return null;
+    }
+    
+    public static function getCollection()
+    {
+        $collection = parent::getCollection();
+        $prefix = static::prefix();
+        if ($prefix) {
+            $collection->prefix = $prefix;
+        }
+        return $collection;
     }
 }

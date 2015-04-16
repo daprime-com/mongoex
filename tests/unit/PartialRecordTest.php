@@ -3,14 +3,15 @@ namespace tests\unit;
 
 use tests\unit\mocks\ActiveRecordMock;
 use tests\unit\mocks\PartialRecordMock;
+use mongoex\Collection;
 
 class PartialRecordTests extends TestCase
-{        
-    public function testFindQueryClass()
+{    
+    public function testGetCollectionMethod()
     {
-        $query = PartialRecordMock::find();
-        $this->assertInstanceOf(\mongoex\ActiveQuery::className(), $query);
-        $this->assertTrue($query->hasParent());
+        $collection = PartialRecordMock::getCollection();
+        $this->assertInstanceOf(Collection::className(), $collection);
+        $this->assertEquals('partial', $collection->prefix);
     }
     
     public function testFindOneMethod()
@@ -21,7 +22,27 @@ class PartialRecordTests extends TestCase
         $this->assertEquals(2, $model->integer);
     }
     
-    public function testFindMethod()
+    public function testFindAllMethod()
+    {
+        $models = PartialRecordMock::find()->all();
+        $this->assertCount(5, $models);
+    }
+    
+    public function testFindWhereAllMethod()
+    {
+        $models = PartialRecordMock::find()->where(['str' => 'partialstring3'])->all();
+        $this->assertCount(1, $models);
+        $this->assertInstanceOf(PartialRecordMock::className(), $models[0]);
+        $this->assertEquals('partialstring3', $models[0]->str);
+    }
+    
+    public function testWhereWithOperatorCondition()
+    {
+        $models = PartialRecordMock::find()->where(['between', 'integer', 2, 4])->all();
+        $this->assertCount(3, $models);
+    }
+    
+    /*public function testFindMethod()
     {
         $models = PartialRecordMock::find()->where(['str' => 'partialstring1'])->all();
         $this->assertCount(1, $models);
@@ -61,7 +82,7 @@ class PartialRecordTests extends TestCase
         $model = PartialRecordMock::findOne('oid1');
         $this->assertEquals(1, $model->delete());
         $this->assertNull(PartialRecordMock::findOne('oid1'));
-    }
+    }*/
 
     public function fixtures()
     {
@@ -74,7 +95,7 @@ class PartialRecordTests extends TestCase
                         ['oid' => 'oid2', 'str' => 'partialstring2', 'integer' => 3],
                         ['oid' => 'oid3', 'str' => 'partialstring3', 'integer' => 4]
                     ]],
-                    ['str' => 'string', 'integer' => 1, 'partial' => [
+                    ['_id' => 'parent2', 'str' => 'string', 'integer' => 1, 'partial' => [
                         ['oid' => 'oid4', 'str' => 'partialstring4', 'integer' => 5],
                         ['oid' => 'oid5', 'str' => 'partialstring5', 'integer' => 6]
                     ]]

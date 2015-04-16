@@ -7,7 +7,7 @@ return [
     'vendorPath' => $basePath . '/vendor',
     'components' => [
         'mongodb' => [
-            'class' => 'yii\mongodb\Connection',
+            'class' => 'mongoex\Connection',
             'dsn' => 'mongodb://test-user:test-pass@localhost:27017/test_db'
         ],
         'log' => [

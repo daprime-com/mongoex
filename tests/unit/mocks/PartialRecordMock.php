@@ -1,14 +1,22 @@
 <?php
 namespace tests\unit\mocks;
 
-use mongoex\PartialRecord;
+use mongoex\ActiveRecord;
 
 /**
  * @author Igor Murujev <imurujev@gmail.com>
  */
-class PartialRecordMock extends PartialRecord
+class PartialRecordMock extends ActiveRecord
 {            
-    protected static $parentModel = ['tests\unit\mocks\ActiveRecordMock', 'partial'];
+    public static function collectionName()
+    {
+        return 'test_collection';    
+    }
+    
+    public static function prefix()
+    {
+        return 'partial';
+    }
     
     public function rules()
     {
