@@ -34,7 +34,12 @@ class ActiveRecord extends BaseActiveRecord implements DataTypeInterface
      */
     public function attributes()
     {
-        return array_merge(static::primaryKey(), array_keys($this->columns()));
+        $attributes = array_merge(static::primaryKey(), array_keys($this->columns()));
+        $prefix = static::prefix();
+        if ($prefix) {
+            $attributes[] = 'parentId';
+        }
+        return $attributes;
     }
 
     public function getId($stringify = true)
@@ -73,5 +78,29 @@ class ActiveRecord extends BaseActiveRecord implements DataTypeInterface
             $collection->prefix = $prefix;
         }
         return $collection;
+    }
+    
+    protected function insertInternal($attributes = null)
+    {
+        if (!$this->beforeSave(true)) {
+            return false;
+        }
+        $values = $this->getDirtyAttributes($attributes);
+        if (empty($values)) {
+            $currentAttributes = $this->getAttributes();
+            foreach ($this->primaryKey() as $key) {
+                if (isset($currentAttributes[$key])) {
+                    $values[$key] = $currentAttributes[$key];
+                }
+            }
+        }
+        $newId = static::getCollection()->insert($values);
+        $primaryKey = static::primaryKey()[0];
+        $this->setAttribute($primaryKey, $newId);
+        $values[$primaryKey] = $newId;
+        $changedAttributes = array_fill_keys(array_keys($values), null);
+        $this->setOldAttributes($values);
+        $this->afterSave(true, $changedAttributes);
+        return true;
     }
 }

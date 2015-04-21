@@ -1,18 +1,42 @@
 <?php
 namespace mongoex;
 
+use Yii;
 use yii\mongodb\Collection as BaseCollection;
 
 /**
  * @author Igor Murujev <imurujev@gmail.com>
  */
 class Collection extends BaseCollection
-{
+{    
     public $prefix;
+    
+    public $multiple = true;
     
     public function hasPrefix()
     {
         return $this->prefix !== null;
+    }
+    
+    public function insert($data, $options = [])
+    {
+        if (!$this->hasPrefix()) {
+            return parent::insert($data, $options);
+        }
+        
+        if (!isset($data['parentId'])) {
+            throw new \Exception('Parent ID attribute must be defined to insert new partial document');
+        }
+        
+        $parentId = $data['parentId'];
+        unset($data['parentId']);
+        $newId = new \MongoId();
+        $data['oid'] = $newId;
+
+        $this->update(['_id' => $parentId], [
+            '$push' => [$this->prefix => $data]
+        ]);
+        return $newId;
     }
     
     public function find($condition = [], $fields = [])
