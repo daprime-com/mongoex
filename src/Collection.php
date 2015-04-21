@@ -24,6 +24,44 @@ class Collection extends BaseCollection
             return parent::insert($data, $options);
         }
         
+        return $this->insertPartial($data, $options);
+    }
+    
+    public function update($condition, $newData, $options = [])
+    {
+        if (!$this->hasPrefix()) {
+            return parent::update($condition, $newData, $options);
+        }
+        
+        return $this->updatePartial($condition, $newData);
+    }
+    
+    public function updatePartial($condition, $newData)
+    {
+        $condition = $this->buildCondition($condition);
+        $options = ['w' => 1, 'multiple' => true];
+        $newData = $this->applyPrefixes($newData, '$');
+
+        $token = $this->composeLogToken('update', [$condition, $newData, $options]);
+        Yii::info($token, __METHOD__);
+        try {
+            Yii::beginProfile($token, __METHOD__);
+            $result = $this->mongoCollection->update($condition, ['$set' => $newData], $options);
+            $this->tryResultError($result);
+            Yii::endProfile($token, __METHOD__);
+            if (is_array($result) && array_key_exists('n', $result)) {
+                return $result['n'];
+            } else {
+                return true;
+            }
+        } catch (\Exception $e) {
+            Yii::endProfile($token, __METHOD__);
+            throw new \Exception($e->getMessage(), (int) $e->getCode(), $e);
+        }
+    }
+    
+    public function insertPartial($data, $options = [])
+    {
         if (!isset($data['parentId'])) {
             throw new \Exception('Parent ID attribute must be defined to insert new partial document');
         }
@@ -31,11 +69,15 @@ class Collection extends BaseCollection
         $parentId = $data['parentId'];
         unset($data['parentId']);
         $newId = new \MongoId();
-        $data['oid'] = $newId;
+        $data['oid'] = (string)$newId;
 
-        $this->update(['_id' => $parentId], [
+        $result = parent::update(['parent._id' => $parentId], [
             '$push' => [$this->prefix => $data]
-        ]);
+        ], $options);
+        
+        if ($result === 0) {
+            return false;
+        }
         return $newId;
     }
     
@@ -74,17 +116,19 @@ class Collection extends BaseCollection
         return $this->applyPrefixes($condition);
     }
 
-    protected function applyPrefixes(array $data)
+    protected function applyPrefixes(array $data, $operator = null)
     {
-		$keys = array_map([$this, 'appendKeyPrefix'], array_keys($data));
-		$result = array_combine($keys, $data);
-		if (isset($result['_id'])) {
-			$result['_id'] = $this->ensureMongoId($result['_id']);
-		}
+        $result = [];
+        foreach ($data as $key => $value) {
+            if ($key === '_id') {
+                $value = $this->ensureMongoId($value);
+            }
+            $result[$this->appendKeyPrefix($key, $operator)] = $value;
+        }
 		return $result;
     }
 
-    protected function appendKeyPrefix($key)
+    protected function appendKeyPrefix($key, $operator = null)
     {
     	if (strpos($key, 'parent.') === 0) {
 			return substr($key, 7);
@@ -93,7 +137,7 @@ class Collection extends BaseCollection
 			return '_id';
     	}
     	else {
-			return $this->prefix . '.' . $key;
+			return $this->prefix . '.' . ($operator === null ? null : $operator . '.') .  $key;
     	}
     }
 }
