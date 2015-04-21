@@ -28,33 +28,45 @@ class PartialFindTests extends TestCase
         $this->assertEquals('partialstring3', $models[0]->str);
     }
     
-    public function testWhereWithOperatorCondition()
+    public function testWhereWithBetweenOperatorCondition()
     {
         $models = PartialRecordMock::find()->where(['between', 'integer', 2, 4])->all();
         $this->assertCount(3, $models);
     }
     
-    /**
-     * @expectedException \Exception
-     * @expectedExceptionMessageRegExp /^Parent ID/
-     */
-    public function testNoParentIdException()
+    public function testWhereWithAndOperatorCondition()
     {
-        $model = new PartialRecordMock();
-        $model->str = 'newstring';
-        $model->integer = 100;
+        $model = PartialRecordMock::find()
+            ->where(['and', ['str' => 'partialstring4'], ['integer' => 5]])
+            ->one();
         
-        $model->save();
+        $this->assertInstanceOf(PartialRecordMock::className(), $model);
+        $this->assertEquals('partialstring4', $model->str);
+        $this->assertEquals(5, $model->integer);
     }
     
-    public function testNewModelCreation()
+    public function testWhereWithOrOperatorCondition()
     {
-        $model = new PartialRecordMock();
-        $model->str = 'newstring';
-        $model->integer = 100;
-        $model->parentId = 'parent1';
+        $models = PartialRecordMock::find()
+            ->where(['or', ['str' => 'partialstring4'], ['integer' => 4]])
+            ->all();
         
-        $this->assertModelSaved($model);
+        $this->assertCount(2, $models);
+    }
+    
+    public function testWhereWithInOperatorCondition()
+    {
+        $models = PartialRecordMock::find()
+            ->where(['in', 'integer', [2, 4, 6, 8]])
+            ->all();
+        
+        $this->assertCount(3, $models);
+        
+        $models = PartialRecordMock::find()
+            ->where(['not in', 'integer', [2, 4, 6, 8]])
+            ->all();
+        
+        $this->assertCount(2, $models);
     }
 
     public function fixtures()

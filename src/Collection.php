@@ -71,4 +71,10 @@ class Collection extends BaseCollection
         $condition = parent::buildBetweenCondition($operator, $operands);
         return $this->applyPrefixes($condition);
     }
+    
+    public function buildInCondition($operator, $operands)
+    {
+        $condition = parent::buildInCondition($operator, $operands);
+        return $this->applyPrefixes($condition);
+    }
 }
