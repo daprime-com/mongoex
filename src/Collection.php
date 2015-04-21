@@ -36,6 +36,22 @@ class Collection extends BaseCollection
         return $this->updatePartial($condition, $newData);
     }
     
+    public function remove($condition = [], $options = [])
+    {
+        if (!$this->hasPrefix()) {
+            return parent::remove($condition, $options);
+        }
+        
+        return $this->removePartial($condition, $options);
+    }
+    
+    public function removePartial($condition = [], $options = [])
+    {
+        return parent::update([], [
+            '$pull' => [$this->prefix => $condition]
+        ], $options);
+    }
+    
     public function updatePartial($condition, $newData)
     {
         $condition = $this->buildCondition($condition);

@@ -4,30 +4,28 @@ namespace tests\unit;
 use tests\unit\mocks\ActiveRecordMock;
 use tests\unit\mocks\PartialRecordMock;
 
-class PartialUpdateTests extends TestCase
+class PartialDeleteTests extends TestCase
 {    
-    public function testExistingModelUpdate()
+    public function testExistingModelDelete()
     {
         $model = PartialRecordMock::findOne('oid1');
-        $this->assertInstanceOf(PartialRecordMock::className(), $model);
+        $this->assertEquals('partialstring1', $model->str);
         
-        $model->str = 'updatedstring';
-        $this->assertModelSaved($model);
-        
-        $model = PartialRecordMock::findOne('oid1');
-        $this->assertEquals('updatedstring', $model->str);
+        $this->assertEquals(1, $model->delete());
+        $this->assertInstanceOf(ActiveRecordMock::className(), ActiveRecordMock::find()->one());
+        $this->assertNull(PartialRecordMock::findOne('oid1'));
     } 
     
-    public function testCollectionUpdate()
+    public function testExistingCollectionPartialDelete()
     {
-        $result = PartialRecordMock::getCollection()->update(['oid' => 'oid2'], [
-            'str' => 'updatedstring'
-        ]);
-        
         $model = PartialRecordMock::findOne('oid2');
-        $this->assertEquals('updatedstring', $model->str);
+        $this->assertEquals('partialstring2', $model->str);
+        
+        PartialRecordMock::getCollection()->remove(['oid' => 'oid2']);
+        $this->assertInstanceOf(ActiveRecordMock::className(), ActiveRecordMock::find()->one());
+        $this->assertNull(PartialRecordMock::findOne('oid2'));
     }
-    
+
     public function fixtures()
     {
         return [
