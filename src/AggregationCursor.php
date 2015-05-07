@@ -108,6 +108,8 @@ class AggregationCursor implements \Iterator
         
         $this->_pipelines[] = ['$project' => $project];
         $rows = $collection->aggregate($this->_pipelines);
+        
+        $this->_cursor = [];
         foreach ($rows as $row) {
             $this->_cursor[] = $row[$prefix];
         }
