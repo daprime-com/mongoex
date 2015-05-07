@@ -71,6 +71,10 @@ trait CollectionPartialTrait
     
     protected function applyPrefixes(array $data, $operator = null)
     {
+    	if ($this->prefix === null) {
+			return $data;
+    	}
+    	
         $result = [];
         foreach ($data as $key => $value) {
         	$key = $this->appendKeyPrefix($key, $operator);
