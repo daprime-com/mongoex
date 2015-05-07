@@ -73,10 +73,11 @@ trait CollectionPartialTrait
     {
         $result = [];
         foreach ($data as $key => $value) {
+        	$key = $this->appendKeyPrefix($key, $operator);
             if ($key === '_id') {
                 $value = $this->ensureMongoId($value);
             }
-            $result[$this->appendKeyPrefix($key, $operator)] = $value;
+            $result[$key] = $value;
         }
 		return $result;
     }
